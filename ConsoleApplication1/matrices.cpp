@@ -3,34 +3,36 @@
 #include <iostream>
 
 #pragma region Constructor Methods
-/**********   Constructor Function   ***********/
-Matrix::Matrix(int NumOfrows, int NumOfCols)
+/**********   Constructor method   ***********/
+Matrix::Matrix(int numOfRows, int numOfCols)
 {
-	this->numOfRows = NumOfrows;
-	this->numOfCols = NumOfCols;
+	if (numOfRows <= 0 || numOfCols <= 0)
+	{
+		std::cout << "[Error] Invalid matrix dimensions" << std::endl;
+	}
+	this->numOfRows = numOfRows;
+	this->numOfCols = numOfCols;
 
-	this->Rows = new int*[this->numOfRows];
-	this->Cols = new int*[this->numOfCols];
+	this->Rows = new double*[this->numOfRows];
+	this->Cols = new double*[this->numOfCols];
 
 	//setup rows
 	for (int i = 0; i < this->numOfRows; i++)
 	{
-		this->Rows[i] = new int[this->numOfCols];
+		this->Rows[i] = new double[this->numOfCols];
 	}
 
 	//setup cols
 	for (int i = 0; i < this->numOfCols; i++)
 	{
-		this->Cols[i] = new int[this->numOfRows];
+		this->Cols[i] = new double[this->numOfRows];
 	}
 
 	InitiateMatrix();
-
-	std::cout << "called matrix constructor." << std::endl;
 }
 
 
-/**********   Initiation Function   ***********/
+/**********   Initiation method   ***********/
 void Matrix::InitiateMatrix()
 {
 	// zeroing Rows
@@ -38,24 +40,16 @@ void Matrix::InitiateMatrix()
 	{
 		for (int j = 0; j < this->numOfCols; j++)
 		{
-			this->Rows[i][j] = 0;
-		}
-	}
-
-	//zeroing Cols
-	for (int i = 0; i < this->numOfCols; i++)
-	{
-		for (int j = 0; j < this->numOfRows; j++)
-		{
-			this->Cols[i][j] = 0;
+			this->AssignCell(i, j, 0.0);
 		}
 	}
 }
 
 
-/**********   Destructor Function   ***********/
+/**********   Destructor method   ***********/
 Matrix::~Matrix()
 {
+	/* need to check if doing this correctly */
 	//zero rows
 	for (int i = 0; i < this->numOfRows; i++)
 	{
@@ -68,12 +62,12 @@ Matrix::~Matrix()
 		delete this->Cols[i];
 	}
 
-	delete this->Rows, this->Cols;
+	delete this->Rows, this->Cols, this;
 }
 #pragma endregion
 
 #pragma region Printing And Assigning Methods
-/**********   Printing Function   ***********/
+/**********   Printing method   ***********/
 void Matrix::Print()
 {
 	for (int i = 0; i < this->numOfRows; i++)
@@ -88,21 +82,21 @@ void Matrix::Print()
 }
 
 
-/**********   Cell Assignment Function   ***********/
-void Matrix::AssignCell(int row, int col, int val)
+/**********   Cell Assignment method   ***********/
+void Matrix::AssignCell(int row, int col, double val)
 {
 	this->Rows[row][col] = val;
 	this->Cols[col][row] = val;
 }
 
 
-/**********   Cell Getting Function   ***********/
-int Matrix::GetCell(int row, int col) {
+/**********   Cell Getting method   ***********/
+double Matrix::GetCell(int row, int col) {
 	return this->Rows[row][col];
 }
 
 
-/**********   Matrix Assignment Function   ***********/
+/**********   Matrix Assignment method   ***********/
 void Matrix::Assign()
 {
 	std::cout << "Initiated assignment process..." << std::endl;
@@ -112,20 +106,23 @@ void Matrix::Assign()
 	{
 		for (int j = 0; j < this->numOfCols; j++)
 		{
-			int val;
+			//Looping through every cell of the matrix
+			double val;
 			std::cout << "[" << j+1 << "]<";
+			// handle bad input loop
 			while (!(std::cin >> val)) {
-				std::cin.clear(); //clear bad input flag
+				std::cin.clear(); 
 				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //discard input
 				std::cout << "[Assign] Invalid input; please re-enter: " << std::endl << "[" << j << "]<";
 			}
-			this->Rows[i][j] = val;
-			this->Cols[j][i] = val;
+			this->AssignCell(i, j, val); //Assigning value
 		}
 		if (i + 1 == this->numOfRows) {
+			// at the end of the assignment operation
 			std::cout << "done." << std::endl;
 		}
 		else {
+			// every new row
 			std::cout << "Row " << i + 2 << ":" << std::endl;
 		}
 	}
@@ -133,13 +130,13 @@ void Matrix::Assign()
 #pragma endregion
 
 #pragma region Math Methods
-/**********   Addition Function   ***********/
+/**********   Addition method   ***********/
 Matrix* Matrix::Addition(Matrix* m1, Matrix* m2)
 {
 	std::cout << "[Addition]" << std::endl;
+	// checks if the two matrices don't have the same dimensions
 	if (m1->numOfCols != m2->numOfCols || m1->numOfRows != m2->numOfRows) {
-		// don't have the same dimensions
-		std::cout << "[Add] The two matrices don't have the same dimensions, therefore cannot be added together" << std::endl;
+		std::cout << "[Add] The two matrices don't have the same dimensions, therefore cannot be added together." << std::endl;
 		return nullptr;
 	}
 
@@ -149,7 +146,7 @@ Matrix* Matrix::Addition(Matrix* m1, Matrix* m2)
 	{
 		for (int j = 0; j < m1->numOfCols; j++)
 		{
-			int val = m1->Rows[i][j] + m2->Rows[i][j];
+			double val = m1->Rows[i][j] + m2->Rows[i][j];
 			addedMat->AssignCell(i, j, val);
 		}
 	}
@@ -158,33 +155,33 @@ Matrix* Matrix::Addition(Matrix* m1, Matrix* m2)
 }
 
 
-/**********   Transpositioning Function   ***********/
+/**********   Transpositioning method   ***********/
 void Matrix::Transpose()
 {
 	std::cout << "[Transpose]" << std::endl;
 	//changing rows into columns
-	int ** temp = this->Rows;
+	double ** temp1 = this->Rows;
 	this->Rows = this->Cols;
-	this->Cols = temp;
+	this->Cols = temp1;
 
 	//adjusting number of rows and columns accordingly
-	int temp1 = this->numOfRows;
+	int temp2 = this->numOfRows;
 	this->numOfRows = this->numOfCols;
-	this->numOfCols = temp1;
+	this->numOfCols = temp2;
 	
 	this->Print();
 }
 
 
-/**********   Transpositioning Function   ***********/
-Matrix* Matrix::ScalarMultiplication(Matrix* m, int s) 
+/**********   Transpositioning method   ***********/
+Matrix* Matrix::ScalarMultiplication(Matrix* m, double scalar) 
 {
 	std::cout << "[ScalarMultiplication]" << std::endl;
 	for (int i = 0; i < m->numOfRows; i++)
 	{
 		for (int j = 0; j < m->numOfCols; j++)
 		{
-			m->AssignCell(i, j, m->GetCell(i, j) * s);
+			m->AssignCell(i, j, m->GetCell(i, j) * scalar);
 		}
 	}
 
@@ -193,8 +190,8 @@ Matrix* Matrix::ScalarMultiplication(Matrix* m, int s)
 }
 
 
-/**********   Add rows Function   ***********/
-Matrix* Matrix::AddRows(Matrix* m, int effRow, int otherRow, int multiplier)
+/**********   Add rows method   ***********/
+Matrix* Matrix::AddRows(Matrix* m, int effRow, int otherRow, double multiplier)
 {
 	//check out of bounds exeption
 	if (effRow < 0 || effRow >= m->numOfRows || otherRow < 0 || otherRow >= m->numOfRows) 
@@ -206,8 +203,8 @@ Matrix* Matrix::AddRows(Matrix* m, int effRow, int otherRow, int multiplier)
 	std::cout << "[AddRows]" << std::endl;
 	for (int i = 0; i < m->numOfCols; i++)
 	{
-		int otherRowVal = m->Rows[otherRow][i];
-		int effectedRowVal = m->Rows[effRow][i];
+		double otherRowVal = m->Rows[otherRow][i];
+		double effectedRowVal = m->Rows[effRow][i];
 		m->AssignCell(effRow, i, (int)(effectedRowVal + (multiplier * otherRowVal)));
 	}
 
@@ -217,13 +214,19 @@ Matrix* Matrix::AddRows(Matrix* m, int effRow, int otherRow, int multiplier)
 }
 
 
-/**********   Row Multiplication Function   ***********/
-Matrix* Matrix::RowMultiplication(Matrix* m, int row, int scalar)
+/**********   Row Multiplication method   ***********/
+Matrix* Matrix::RowMultiplication(Matrix* m, int row, double scalar)
 {
-	//check out of bounds exeption
+	//checks out of bounds exeption
 	if (row < 0 || row >= m->numOfRows) 
 	{
 		std::cout << "[AddRows] Out of matrix boundries, start at base 0" << std::endl;
+		return nullptr;
+	}
+	//checks for zero scalar
+	if (scalar == 0.0) 
+	{
+		std::cout << "[AddRows] Cannot multiply a row by zero." << std::endl;
 		return nullptr;
 	}
 
@@ -239,8 +242,8 @@ Matrix* Matrix::RowMultiplication(Matrix* m, int row, int scalar)
 }
 
 
-/**********   Add rows Function   ***********/
-Matrix* Matrix::SwitchRows(Matrix* m, int fr, int sr)
+/**********   Add rows method   ***********/
+Matrix* Matrix::SwapRows(Matrix* m, int fr, int sr)
 {
 	//check out of bounds exeption
 	if (fr < 0 || fr >= m->numOfRows || sr < 0 || sr >= m->numOfRows)
@@ -250,8 +253,7 @@ Matrix* Matrix::SwitchRows(Matrix* m, int fr, int sr)
 	}
 	for (int i = 0; i < m->numOfCols; i++)
 	{
-		int temp;
-		temp = m->Rows[fr][i];
+		double temp = m->Rows[fr][i];
 		m->AssignCell(fr, i, m->Rows[sr][i]);
 		m->AssignCell(sr, i, temp);
 	}
@@ -263,25 +265,27 @@ Matrix* Matrix::SwitchRows(Matrix* m, int fr, int sr)
 }
 
 
+/**********   Metrix multiplication method   ***********/
 Matrix* Matrix::Multiplication(Matrix* a, Matrix* b) 
 {
+	// don't have the correct dimensions for multiplication
 	if (a->numOfCols != b->numOfRows) 
-	{
-		// don't have the correct dimensions
-		std::cout << "[Multiplication] The matrices provided are not of the correct dimensions, therefore cannot be multiplied" << std::endl;
+	{	
+		std::cout << "[Multiplication] The matrices provided are not of the correct dimensions, therefore cannot be multiplied." << std::endl;
 		return nullptr;
 	}
 
+	//Initiating a result metrix
 	Matrix* c = new Matrix(a->numOfRows, b->numOfCols);
-	c->InitiateMatrix();
 
+	//Calculating value for each cell in the result metrix
 	for (int i = 0; i < c->numOfRows; i++)
 	{
 		for (int j = 0; j < c->numOfCols; j++)
 		{
-			int* row = a->Rows[i];
-			int* col = b->Cols[j];
-			int sum = 0;
+			double* row = a->Rows[i];
+			double* col = b->Cols[j];
+			double sum = 0.0;
 			for (int k = 0; k < a->numOfCols; k++)
 			{
 				sum += row[k] * col[k];
@@ -294,7 +298,68 @@ Matrix* Matrix::Multiplication(Matrix* a, Matrix* b)
 	c->Print();
 	return c;
 }
+
+
+/**********   Guassian Elimination method   ***********/
+//Matrix * Matrix::GaussianElimination(Matrix* m)
+//{
+//	if (CheckZeroMatrix(m))
+//	{
+//		std::cout << "[GaussianElimination] done.";
+//		return m;
+//	}
+//
+//	for (int i = 0; i < m->numOfRows; i++)
+//	{
+//		////if its a zeros row, swap with last row
+//		//if (CheckZeroRow(m, i))
+//		//{
+//		//	m->SwapRows(m, i,)
+//		//}
+//	}
+//}
 #pragma endregion
+
+#pragma region Inner Math Methods
+/**********   Checks if a matrix is all zeros method   ***********/
+bool Matrix::CheckZeroMatrix(Matrix* m) 
+{
+	if (m->numOfRows == CountZeroRow(m))
+	{
+		return true;
+	}
+	return false;
+}
+
+
+/**********   Checks if a certain row is all zeros method   ***********/
+bool Matrix::CheckZeroRow(Matrix* m, int row)
+{
+	for (int i = 0; i < m->numOfCols; i++)
+	{
+		if (m->Rows[row][i] != 0)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+/**********   Addition method   ***********/
+int Matrix::CountZeroRow(Matrix* m)
+{
+	int sum = 0;
+	for (int i = 0; i < m->numOfRows; i++)
+	{
+		if (CheckZeroRow(m, i))
+			sum += 0;
+	}
+	return sum;
+}
+
+#pragma endregion
+
 
 
 

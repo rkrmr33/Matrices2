@@ -4,8 +4,8 @@ class Matrix
 private:
 	int numOfRows;
 	int numOfCols;
-	int ** Rows;
-	int ** Cols;
+	double ** Rows;
+	double ** Cols;
 	void InitiateMatrix();
 
 public:
@@ -15,17 +15,21 @@ public:
 
 	//printing and assgining methods
 	void Print();
-	void AssignCell(int row, int col, int val);
+	void AssignCell(int row, int col, double val);
 	void Assign();
-	int GetCell(int row, int col);
+	double GetCell(int row, int col);
+	static bool CheckZeroMatrix(Matrix*);
+	static bool CheckZeroRow(Matrix*, int row);
+	static int CountZeroRow(Matrix*);
 
 	//math methods
 	static Matrix* Addition(Matrix*, Matrix*);
 	void Transpose();
-	static Matrix* ScalarMultiplication(Matrix*, int scalar);
-	static Matrix* AddRows(Matrix*, int effectedRow, int otherRow, int multiplier = 1);
-	static Matrix* RowMultiplication(Matrix*, int row, int scalar);
-	static Matrix* SwitchRows(Matrix*, int firstRow, int secondRow);
+	static Matrix* ScalarMultiplication(Matrix*, double scalar);
+	static Matrix* AddRows(Matrix*, int effectedRow, int otherRow, double multiplier = 1);
+	static Matrix* RowMultiplication(Matrix*, int row, double scalar);
+	static Matrix* SwapRows(Matrix*, int firstRow, int secondRow);
 	static Matrix* Multiplication(Matrix*, Matrix*);
+	static Matrix* GaussianElimination(Matrix *);
 };
 
