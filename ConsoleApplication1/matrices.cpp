@@ -205,7 +205,10 @@ Matrix* Matrix::AddRows(Matrix* m, int effRow, int otherRow, double multiplier)
 	{
 		double otherRowVal = m->Rows[otherRow][i];
 		double effectedRowVal = m->Rows[effRow][i];
-		m->AssignCell(effRow, i, (int)(effectedRowVal + (multiplier * otherRowVal)));
+		double newVal = (effectedRowVal + (multiplier * otherRowVal));
+		if (newVal == -0)
+			newVal = 0;
+		m->AssignCell(effRow, i, newVal);
 	}
 
 	m->Print();
@@ -232,7 +235,10 @@ Matrix* Matrix::RowMultiplication(Matrix* m, int row, double scalar)
 
 	for (int i = 0; i < m->numOfCols; i++)
 	{
-		m->AssignCell(row, i, m->Rows[row][i] * scalar);
+		double val = m->Rows[row][i] * scalar;
+		if (val == -0)
+			val = 0;
+		m->AssignCell(row, i, val);
 	}
 
 	std::cout << "[RowMultiplication] Row=" << row + 1 << " Scalar=" << scalar << std::endl;
@@ -301,23 +307,72 @@ Matrix* Matrix::Multiplication(Matrix* a, Matrix* b)
 
 
 /**********   Guassian Elimination method   ***********/
-//Matrix * Matrix::GaussianElimination(Matrix* m)
-//{
-//	if (CheckZeroMatrix(m))
-//	{
-//		std::cout << "[GaussianElimination] done.";
-//		return m;
-//	}
-//
-//	for (int i = 0; i < m->numOfRows; i++)
-//	{
-//		////if its a zeros row, swap with last row
-//		//if (CheckZeroRow(m, i))
-//		//{
-//		//	m->SwapRows(m, i,)
-//		//}
-//	}
-//}
+Matrix * Matrix::GaussianElimination(Matrix* m)
+{
+	if (CheckZeroMatrix(m))
+	{
+		std::cout << "[GaussianElimination] done." << std::endl;
+		m->Print();
+		return m;
+	}
+
+	//find the first none zero in every column
+	for (int i = 0; i < m->numOfCols; i++)
+	{
+		std::cout << "col:" << i << std::endl;
+		double pivot;
+		int pivRow, pivCol;
+		bool foundPivot = false;  //if this stays false then the column is all zeros
+
+		for (int j = i; j < m->numOfRows; j++)
+		{
+			if (m->Cols[i][j] != 0) 
+			{
+				pivot = m->Cols[i][j];
+				pivCol = i;
+				pivRow = j;
+				foundPivot = true;
+				std::cout << "found pivot: " << pivot << " " << j << ":" << i << std::endl;
+				break;
+			}
+		}
+
+		if (foundPivot) 
+		{
+			//make sure the pivot is in the (i,i) location
+			if (pivRow != i && pivCol>i) 
+			{
+				//swap rows if needed
+				std::cout << "swapped rows " << pivRow << ":" << i << std::endl;
+				m->SwapRows(m, pivRow, i);
+				
+			}
+
+			//make sure the pivot is 1
+			if (pivot != 1.0)
+			{
+				std::cout << "divided row " << i << " by: 1/" << pivot << std::endl;
+				m->RowMultiplication(m, i, (1 / pivot));
+				
+			}
+
+			//zero every row in the same column using the pivot row
+			for (int j = 0; j < m->numOfRows; j++)
+			{
+				if (m->Cols[i][j] != 0 && j != pivRow) 
+				{
+					std::cout << "zeroing row: " << j << " multiplier=" << -(m->Cols[i][j]) << std::endl;
+					m->AddRows(m, j, pivRow, -(m->Cols[i][j]));
+					
+				}
+			}
+		}
+	}
+
+	std::cout << "[GaussianElimination] done!" << std::endl;
+	m->Print();
+	return m;
+}
 #pragma endregion
 
 #pragma region Inner Math Methods
